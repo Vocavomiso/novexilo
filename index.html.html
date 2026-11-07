@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Security Awareness | Training Simulation</title><style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#050609;color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;min-height:100vh;overflow-x:hidden}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.018) 4px 5px);z-index:3}.screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px}.panel{width:min(760px,100%);text-align:center;border:1px solid #6b1722;background:radial-gradient(ellipse at 50% 20%,#280a12 0%,#0b0c12 55%,#050609 100%);padding:34px 22px;box-shadow:0 0 80px #e21b3222, inset 0 0 45px #ff1d2a0a;position:relative}.label{font-size:12px;letter-spacing:2px;color:#ffb3bc;font-weight:700}.badge{display:inline-block;border:1px solid #d45b69;color:#ffd5d9;border-radius:99px;padding:7px 14px;font-size:12px;letter-spacing:1px;margin-bottom:28px}.symbol{font-size:72px;color:#ff344f;text-shadow:0 0 25px #ff223b;animation:pulse 1.4s infinite}h1{color:#ff4056;font-size:clamp(29px,6vw,54px);letter-spacing:2px;margin:15px 0 10px;text-shadow:0 0 22px #e91c385e;animation:glitch 4s infinite}p{line-height:1.65;color:#d9c9cd}.status{font-family:Consolas,monospace;color:#ffb0ba;font-size:14px;letter-spacing:1px}.count{font-family:Consolas,monospace;font-size:clamp(72px,15vw,120px);font-weight:800;color:white;margin:16px 0;text-shadow:0 0 32px #f42d4350}.bar{height:8px;background:#2b2028;border-radius:20px;overflow:hidden;margin:0 auto 24px;max-width:500px}.fill{height:100%;width:100%;background:linear-gradient(90deg,#ff2340,#ff8a98);transition:width 1s linear}.small{font-size:12px;color:#a6a6ae}.foot{font-size:12px;color:#e9aeb7;margin-top:32px}.hidden{display:none}.success{color:#69e6ac}.tips{text-align:left;max-width:520px;margin:20px auto;color:#e0e0e0;line-height:1.8}.tips li{margin:7px 0}@keyframes pulse{50%{opacity:.45;transform:scale(.94)}}@keyframes glitch{0%,96%,100%{transform:translateX(0)}97%{transform:translateX(2px)}98%{transform:translateX(-2px)}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<main class="screen" id="warning"><section class="panel" role="region" aria-label="Security training simulation"><div class="badge">AUTHORIZED TRAINING SIMULATION — NO REAL THREAT</div><div class="symbol" aria-hidden="true">⚠</div><h1>SECURITY ALERT</h1><p class="status">SUSPICIOUS LINK ACTIVITY DETECTED</p><p>This is a simulated phishing-awareness exercise.<br>In a real incident, clicking an unfamiliar link could put patient information at risk.</p><div class="count" id="timer" aria-live="off">00:30</div><div class="bar"><div class="fill" id="fill"></div></div><p class="small">Training message will appear when the countdown ends.</p><p class="foot">You may close this browser tab at any time. No files or patient data are accessed.</p></section></main>
+<main class="screen hidden" id="result"><section class="panel"><div class="badge">TRAINING SIMULATION COMPLETE</div><div class="symbol success" aria-hidden="true">✓</div><h1 class="success" style="text-shadow:none">THINK BEFORE YOU CLICK</h1><p>You just experienced a simulated phishing warning. No device or patient information was harmed.</p><ul class="tips"><li>Verify the sender and email address.</li><li>Hover over links and check their destination before opening.</li><li>Never enter credentials through an unexpected link.</li><li>Report suspicious messages to your IT/security team.</li></ul><p class="foot">Protect patient privacy. Stay alert. Report suspicious emails.</p></section></main>
+<script>
+'use strict';
+let remaining=30;let ended=false;let audioCtx=null;let beepTimer=null;
+const timer=document.getElementById('timer'),fill=document.getElementById('fill');
+function beep(){
+ if(!audioCtx||audioCtx.state!=='running'||ended)return;
+ try {
+  const now=audioCtx.currentTime;
+  for(const [freq,vol] of [[740,.16],[925,.075]]){
+   const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+   osc.type='square';osc.frequency.setValueAtTime(freq,now);
+   gain.gain.setValueAtTime(.0001,now);
+   gain.gain.exponentialRampToValueAtTime(vol,now+.018);
+   gain.gain.setValueAtTime(vol,now+.18);
+   gain.gain.exponentialRampToValueAtTime(.0001,now+.32);
+   osc.connect(gain);gain.connect(audioCtx.destination);
+   osc.start(now);osc.stop(now+.33);
+  }
+ }catch(e){console.warn('Alert audio error:',e)}
+}
+async function startAudio(){
+ if(ended)return;
+ try{
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state!=='running')await audioCtx.resume();
+  if(audioCtx.state==='running'&&!beepTimer){beep();beepTimer=setInterval(beep,1100)}
+ }catch(e){console.warn('Autoplay unavailable:',e)}
+}
+// Try autoplay immediately. Browsers may block it; any ordinary page interaction retries audio.
+startAudio();
+for(const eventName of ['pointerdown','keydown','touchstart']){
+ document.addEventListener(eventName,startAudio,{passive:true});
+}
+const interval=setInterval(()=>{remaining--;timer.textContent='00:'+String(Math.max(remaining,0)).padStart(2,'0');fill.style.width=(Math.max(remaining,0)/30*100)+'%';if(remaining<=0){clearInterval(interval);ended=true;clearInterval(beepTimer);if(audioCtx)audioCtx.close().catch(()=>{});document.getElementById('warning').classList.add('hidden');document.getElementById('result').classList.remove('hidden')}},1000);
+</script></body></html>
